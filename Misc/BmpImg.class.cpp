@@ -1,75 +1,57 @@
 #include "Misc/BmpImg.class.hpp"
 
+#include "Core/make_array.template.hpp"
+
 FDV_BEGIN_NAMESPACE
 
-Bmp_image::Bmp_image(uint32_t width, uint32_t height)
-{
-	auto	normalize([] (uint32_t n)
-		-> uint32_t
-	{
-		for (uint32_t bit(1u << (-1 + 8 * sizeof(n))) ; bit ; bit >>= 1)
+uint8_t constexpr	BmpImg::_Default_color;
+
+BmpImg::BmpImg(uint32_t width, uint32_t height) :
+	_width(width + (4 - (width & 0b11)) % 4), // _width must be multiple of 4
+	_height(height),
+	_header{
 		{
-			if (n & bit)
-			{
-				if (n == bit)
-					return n;
-				else if (bit << 1)
-					return bit << 1;
-				else
-					throw std::exception();
-			}
-		}
-		throw std::exception();
-	});
-
-	for (std::size_t count(0) ; count < 256 ; ++count)
-	{
-		uint8_t	i(static_cast<uint8_t>(count));
-		_colormap.color[i] = {i, i, i};
-	}
-
-	try
-	{
-		_info.width = normalize(width);
-	}
-	catch (std::exception const &)
-	{
-		throw std::runtime_error("Invalid width");
-	}
-	try
-	{
-		_info.height = normalize(height);
-	}
-	catch (std::exception const &)
-	{
-		throw std::runtime_error("Invalid height");
-	}
-
-	_info.img_size = _info.width * _info.height;
-	_header.file_size = _info.img_size + _header.img_offset;
-
-	_bitmap = new uint8_t[_info.img_size];
-	this->clear();
+			{'B', 'M'},
+			_width * _height + static_cast<uint32_t>(sizeof _header),
+			sizeof _header,
+		},
+		{
+			sizeof _header.info,
+			width,
+			height,
+			1u,					// planes
+			8u,					// bpp
+			0u,					// compression
+			_width * _height,
+			0u,					// horizontal resolution
+			0u,					// vertical resolution
+			256u,				// colors number
+			0u,					// number of important colors
+		},
+		fdv::make_array<256u>([](uint32_t x){return x + (x << 8) + (x << 16); })
+	},
+	_bitmap(_header.info.img_size, _Default_color)
+{
 }
 
 
 std::size_t
-Bmp_image::width(void) const
+BmpImg::width(void) const
 {
-	return _info.width;
+	return _header.info.img_width;
 }
 
 std::size_t
-Bmp_image::height(void) const
+BmpImg::height(void) const
 {
-	return _info.height;
+	return _header.info.img_height;
 }
 
 uint8_t &
-Bmp_image::operator()(std::size_t line, std::size_t col)
+BmpImg::operator()(std::size_t line, std::size_t col)
 {
-	std::size_t		w(_info.width);
-	std::size_t		h(_info.height);
+	std::size_t		w(_header.info.img_width);
+	std::size_t		h(_header.info.img_height);
 
 	if (col >= h)
 		throw std::runtime_error("Column value out of bounds");
@@ -80,23 +62,21 @@ Bmp_image::operator()(std::size_t line, std::size_t col)
 }
 
 void
-Bmp_image::write(std::string filename)
+BmpImg::write(std::string filename)
 {
 	std::ofstream	ofs(filename, std::ofstream::binary);
 
 	if (not ofs.is_open())
 		throw std::runtime_error(std::string("Cannot open ") + filename);
 	ofs.write(reinterpret_cast<char *>(&_header), sizeof _header);
-	ofs.write(reinterpret_cast<char *>(&_info), sizeof _info);
-	ofs.write(reinterpret_cast<char *>(&_colormap), sizeof _colormap);
-	ofs.write(reinterpret_cast<char *>(_bitmap), _info.img_size);
+	ofs.write(reinterpret_cast<char *>(_bitmap.data()), _bitmap.size());
 	ofs.close();
 }
 
 void
-Bmp_image::clear(uint8_t color)
+BmpImg::clear(uint8_t color)
 {
-	for (std::size_t i(0) ; i < _info.img_size ; ++i)
+	for (std::size_t i(0) ; i < _header.info.img_size ; ++i)
 		_bitmap[i] = color;
 }
 
