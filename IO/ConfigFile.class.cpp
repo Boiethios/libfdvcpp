@@ -54,22 +54,11 @@ ConfigFile::open(std::string const & filename)
 std::string
 ConfigFile::operator[](std::string const & key)
 {
-	if (_values.find(key) == _values.end())
+	if (not this->exists(key))
 		return "";
 	return _values.at(key);
 }
 
-ConfigFile::Map::const_iterator
-ConfigFile::begin(void) const
-{
-	return _values.begin();
-}
-
-ConfigFile::Map::const_iterator
-ConfigFile::end(void) const
-{
-	return _values.end();
-}
 
 template<> std::string
 ConfigFile::get<std::string>(std::string const & key)

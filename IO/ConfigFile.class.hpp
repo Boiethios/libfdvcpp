@@ -32,11 +32,14 @@ class ConfigFile
 		clear(void) {_values.clear();}
 
 
+		inline Map::const_iterator
+		begin(void) const {return _values.begin();}
 		Map::const_iterator
-		begin(void) const;
-		Map::const_iterator
-		end(void) const;
+		end(void) const {return _values.end();}
 
+
+		inline bool
+		exists(std::string const & key) {return _values.find(key) != _values.end();}
 
 		std::string
 		operator[](std::string const & key);
@@ -49,7 +52,7 @@ class ConfigFile
 
 			iss >> ans;
 			if (iss.rdbuf()->in_avail())
-				std::cout << "Warning: " << iss.str() << "\n";
+				std::cout << "Warning: `" << iss.str() << "` badly formated" << "\n";
 			return ans;
 		}
 
