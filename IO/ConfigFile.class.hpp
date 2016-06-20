@@ -7,6 +7,7 @@
 #ifndef		__FDV__CONFIGFILE_CLASS__
 # define	__FDV__CONFIGFILE_CLASS__
 
+# include "IO/OutputStream.class.hpp"
 # include "Core/Object.abstract.hpp"
 # include "Misc/stringConvert.hpp"
 
@@ -52,7 +53,7 @@ class ConfigFile
 
 			iss >> ans;
 			if (iss.rdbuf()->in_avail())
-				std::cout << "Warning: `" << iss.str() << "` badly formated" << "\n";
+				warn(std::string("`") + iss.str() + "` badly formated");
 			return ans;
 		}
 

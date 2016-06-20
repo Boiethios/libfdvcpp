@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 #include "IO/ConfigFile.class.hpp"
+#include "IO/OutputStream.class.hpp"
 #include "Misc/stringConvert.hpp"
 #include "String/trim.inline.hpp"
 
@@ -40,7 +41,10 @@ ConfigFile::open(std::string const & filename)
 		if (line.empty())
 			continue ;
 		if ((idx = line.find("=")) == std::string::npos)
-			/*warning(),*/ continue ;
+		{
+			warn(std::string("In `") + filename + "`: badly formated: `" + line + "`");
+			continue ;
+		}
 
 		std::string	key(line.substr(0, idx - 1));
 		std::string	value(line.substr(idx + 1));
