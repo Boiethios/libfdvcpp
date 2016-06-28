@@ -71,6 +71,8 @@ class ConfigFile : public Object
 				operator[](std::string const & item);
 				std::string &
 				at(std::string const & item);
+				std::string const &
+				at(std::string const & item) const;
 
 			public:
 				void
@@ -87,7 +89,7 @@ class ConfigFile : public Object
 				exists(std::string const & item) const;
 
 				template<typename T> Type<T>
-				get(std::string const & item);
+				item(std::string const & item);
 		};
 
 		ConfigFile(void);
@@ -109,6 +111,8 @@ class ConfigFile : public Object
 		void
 		remove(std::string const & section);
 
+		void
+		write(void) const;
 
 //		Map::const_iterator
 //		begin(void) const;
@@ -122,14 +126,13 @@ class ConfigFile : public Object
 		operator()(void);
 
 		bool
-		exists(std::string const & section);
+		exists(std::string const & section) const;
 		bool
-		exists(std::string const & section, std::string const & key);
+		exists(std::string const & section, std::string const & key) const;
 
 	private:
-		std::unordered_map<std::string, Map>
-					_sections;
-		std::string	_filename;
+		std::unordered_map<std::string, Map>	_sections;
+		std::string								_filename;
 
 		void
 		_open(void);

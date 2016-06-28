@@ -25,6 +25,36 @@ ConfigFile::ConfigFile(const std::string &filename) :
 }
 
 
+
+void
+ConfigFile::write(void) const
+{
+	std::ofstream	ofs(_filename);
+
+	if (not ofs.is_open())
+	{
+		error("Cannot open:", _filename, "for writing.");
+		return ;
+	}
+	if (this->exists(""))
+	{
+		for (auto const & item : _sections.at(""))
+			ofs << item.first << " = " << item.second << "\n";
+		ofs << '\n';
+	}
+	for (auto const & section : _sections)
+	{
+		if (section.first.empty())
+			continue ;
+		ofs << '[' << section.first << "]\n";
+		for (auto const & item : section.second)
+			ofs << item.first << " = " << item.second << "\n";
+		ofs << '\n';
+	}
+	ofs.close();
+}
+
+
 void
 ConfigFile::_open(void)
 {
@@ -81,17 +111,19 @@ ConfigFile::Type<std::string>::operator std::string (void) const
 template<> ConfigFile::Type<bool> &
 ConfigFile::Type<bool>::operator=(bool const & value)
 {
-	_section[_key] = (value ? "True" : "False");
+	_section[_key] = (value ? "true" : "talse");
 	return *this;
 }
 template<>
 ConfigFile::Type<bool>::operator bool (void) const
 {
-	std::string &	str(_section.at(_key));
+	std::string		str(_section.at(_key));
 
-	if (str == "true" or str == "True")
+	for (auto & c: str)
+		c = tolower(c);
+	if (str == "true")
 		return true;
-	if (str == "false" or str == "False")
+	if (str == "false")
 		return false;
 	warn(std::string("Entry `") + str + "` is not a valid bool.");
 	return false;

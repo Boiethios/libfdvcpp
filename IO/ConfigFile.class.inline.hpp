@@ -25,6 +25,13 @@ ConfigFile::Map::at(std::string const & item)
 		throw std::out_of_range(std::string("No item at key `") + item + "`");
 	return this->Mother::operator[](item);
 }
+inline std::string const &
+ConfigFile::Map::at(std::string const & item) const
+{
+	if (not this->exists(item))
+		throw std::out_of_range(std::string("No item at key `") + item + "`");
+	return this->Mother::at(item);
+}
 
 inline void
 ConfigFile::Map::clear(void)
@@ -55,7 +62,7 @@ ConfigFile::Map::exists(std::string const & item) const
 }
 
 template<typename T> ConfigFile::Type<T>
-ConfigFile::Map::get(std::string const & item)
+ConfigFile::Map::item(std::string const & item)
 {
 	return Type<T>(this, item);
 }
@@ -80,7 +87,6 @@ ConfigFile::remove(std::string const & section)
 {
 	_sections.erase(section);
 }
-
 
 //inline ConfigFile::Map::const_iterator
 //ConfigFile::begin(void) const
@@ -107,14 +113,14 @@ ConfigFile::operator()(void)
 
 
 inline bool
-ConfigFile::exists(std::string const & section)
+ConfigFile::exists(std::string const & section) const
 {
 	return _sections.find(section) != _sections.end();
 }
 inline bool
-ConfigFile::exists(std::string const & section, std::string const & key)
+ConfigFile::exists(std::string const & section, std::string const & key) const
 {
-	return this->exists(section) and this->operator()(section).exists(key);
+	return this->exists(section) and _sections.at(section).exists(key);
 }
 
 
