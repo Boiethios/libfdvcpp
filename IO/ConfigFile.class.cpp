@@ -62,12 +62,39 @@ ConfigFile::_open(void)
 	ifs.close();
 }
 
-/* Map */
-//TODO
-//template<> std::string
-//ConfigFile::Map::get<std::string>(std::string const & item) const
-//{
-//	return this->at(item);
-//}
+/* ConfigFile::Type */
+
+// string specialization
+template<> ConfigFile::Type<std::string> &
+ConfigFile::Type<std::string>::operator=(std::string const & value)
+{
+	_section[_key] = value;
+	return *this;
+}
+template<>
+ConfigFile::Type<std::string>::operator std::string (void) const
+{
+	return _section.at(_key);
+}
+
+// bool specialization
+template<> ConfigFile::Type<bool> &
+ConfigFile::Type<bool>::operator=(bool const & value)
+{
+	_section[_key] = (value ? "True" : "False");
+	return *this;
+}
+template<>
+ConfigFile::Type<bool>::operator bool (void) const
+{
+	std::string &	str(_section.at(_key));
+
+	if (str == "true" or str == "True")
+		return true;
+	if (str == "false" or str == "False")
+		return false;
+	warn(std::string("Entry `") + str + "` is not a valid bool.");
+	return false;
+}
 
 FDV_END_NAMESPACE

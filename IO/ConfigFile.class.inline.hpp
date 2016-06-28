@@ -18,6 +18,13 @@ ConfigFile::Map::operator[](std::string const & item)
 {
 	return this->Mother::operator[](item);
 }
+inline std::string &
+ConfigFile::Map::at(std::string const & item)
+{
+	if (not this->exists(item))
+		throw std::out_of_range(std::string("No item at key `") + item + "`");
+	return this->Mother::operator[](item);
+}
 
 inline void
 ConfigFile::Map::clear(void)

@@ -48,13 +48,13 @@ class ConfigFile : public Object
 
 				operator T (void) const
 				{
-					if (not _section.exists(_key))
-						throw std::out_of_range(std::string("No item at key `") + _key + "`");
-
 					std::istringstream	iss(_section.at(_key));
 					T					ans;
 
 					iss >> ans;
+					if (iss.rdbuf()->in_avail())
+						warn(std::string("Entry `") + iss.str() +
+								"` is not well formated.");
 					return ans;
 				}
 		};
@@ -69,6 +69,8 @@ class ConfigFile : public Object
 
 				std::string &
 				operator[](std::string const & item);
+				std::string &
+				at(std::string const & item);
 
 			public:
 				void
@@ -134,6 +136,14 @@ class ConfigFile : public Object
 };
 
 FDV_END_NAMESPACE
+
+template<typename T>
+std::ostream &
+operator<<(std::ostream & os, fdv::ConfigFile::Type<T> const & value)
+{
+	os << static_cast<T>(value);
+	return os;
+}
 
 #include "IO/ConfigFile.class.inline.hpp"
 
