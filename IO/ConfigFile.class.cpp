@@ -111,7 +111,7 @@ ConfigFile::Type<std::string>::operator std::string (void) const
 template<> ConfigFile::Type<bool> &
 ConfigFile::Type<bool>::operator=(bool const & value)
 {
-	_section[_key] = (value ? "true" : "talse");
+	_section[_key] = (value ? "true" : "false");
 	return *this;
 }
 template<>
