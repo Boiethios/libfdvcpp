@@ -18,56 +18,56 @@ ConfigFile::ConfigFile(void)
 {
 }
 
-ConfigFile::ConfigFile(const std::string &filename)
+ConfigFile::ConfigFile(const std::string &filename) :
+	_filename(filename)
 {
-	this->open(filename);
+	this->_open();
 }
 
 
 void
-ConfigFile::open(std::string const & filename)
+ConfigFile::_open(void)
 {
-	std::ifstream	ifs(filename);
+	std::ifstream	ifs(_filename);
 
+	_sections.clear();
 	if (not ifs.is_open())
-		throw std::runtime_error(std::string("[ConfigFile::open] Cannot open ")
-				+ filename + " (" + strerror(errno) + ")");
+		return ;
 
+	std::string		section;
 	std::string		line;
 	std::size_t		idx;
 
 	while (std::getline(ifs, line))
 	{
+		str_trim(line);
 		if (line.empty())
 			continue ;
-		if ((idx = line.find("=")) == std::string::npos)
+		if(line.front() == '[' and line.back() == ']')
 		{
-			warn(std::string("In `") + filename + "`: badly formated: `" + line + "`");
-			continue ;
+			section = line.substr(1, line.size() - 2);
+			str_trim(section);
 		}
-
-		std::string	key(line.substr(0, idx - 1));
-		std::string	value(line.substr(idx + 1));
-
-		_values[str_trim(key)] = str_trim(value);
+		else if ((idx = line.find("=")) != std::string::npos)
+		{
+			std::string	key(line.substr(0, idx - 1));
+			std::string	value(line.substr(idx + 1));
+			_sections[section][str_rtrim(key)] = str_ltrim(value);
+		}
+		else
+		{
+			warn(std::string("In `") + _filename + "`: badly formated: `" + line + "`");
+		}
 	}
 	ifs.close();
 }
 
-
-std::string
-ConfigFile::operator[](std::string const & key)
-{
-	if (not this->exists(key))
-		return "";
-	return _values.at(key);
-}
-
-
-template<> std::string
-ConfigFile::get<std::string>(std::string const & key)
-{
-	return _values.at(key);
-}
+/* Map */
+//TODO
+//template<> std::string
+//ConfigFile::Map::get<std::string>(std::string const & item) const
+//{
+//	return this->at(item);
+//}
 
 FDV_END_NAMESPACE

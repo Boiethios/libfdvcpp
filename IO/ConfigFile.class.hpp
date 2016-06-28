@@ -14,53 +14,127 @@
 # include <map>
 # include <sstream>
 
-#include <iostream>
 FDV_BEGIN_NAMESPACE
 
-class ConfigFile
+class ConfigFile : public Object
 {
 	public:
-		typedef std::unordered_map<std::string, std::string>	Map;
+		class Map;
+
+		template<typename T>
+		class Type
+		{
+			friend class Map;
+
+				Map &				_section;
+				std::string const	_key;
+
+				Type(Map const *section, std::string const & key) :
+					_section(*const_cast<Map *>(section)),
+					_key(key)
+				{
+				}
+
+			public:
+				Type<T> &
+				operator=(T const & value)
+				{
+					std::ostringstream	oss;
+
+					oss << value;
+					_section[_key] = oss.str();
+					return *this;
+				}
+
+				operator T (void) const
+				{
+					if (not _section.exists(_key))
+						throw std::out_of_range(std::string("No item at key `") + _key + "`");
+
+					std::istringstream	iss(_section.at(_key));
+					T					ans;
+
+					iss >> ans;
+					return ans;
+				}
+		};
+
+		class Map : private std::unordered_map<std::string, std::string>
+		{
+			typedef std::unordered_map<std::string, std::string> Mother;
+
+			template<typename T>
+			friend class Type;
+			friend class ConfigFile;
+
+				std::string &
+				operator[](std::string const & item);
+
+			public:
+				void
+				clear(void);
+				void
+				erase(std::string const & item);
+
+				Map::const_iterator
+				begin(void) const;
+				Map::const_iterator
+				end(void) const;
+
+				bool
+				exists(std::string const & item) const;
+
+				template<typename T> Type<T>
+				get(std::string const & item);
+		};
 
 		ConfigFile(void);
 		ConfigFile(std::string const & filename);
 
+		ConfigFile(ConfigFile const &) = delete;
+		ConfigFile &
+		operator=(ConfigFile const &) = delete;
+
+		ConfigFile(ConfigFile &&) = default;
+		ConfigFile &
+		operator=(ConfigFile &&) = default;
+
 
 		void
-		open(std::string const & filename);
-
-		inline void
-		clear(void) {_values.clear();}
-
-
-		inline Map::const_iterator
-		begin(void) const {return _values.begin();}
-		Map::const_iterator
-		end(void) const {return _values.end();}
+		clear(void);
+		void
+		change(std::string const & filename);
+		void
+		remove(std::string const & section);
 
 
-		inline bool
-		exists(std::string const & key) {return _values.find(key) != _values.end();}
+//		Map::const_iterator
+//		begin(void) const;
+//		Map::const_iterator
+//		end(void) const;
 
-		std::string
-		operator[](std::string const & key);
 
-		template<typename T> T
-		get(std::string const & key)
-		{
-			std::istringstream	iss(_values.at(key));
-			T					ans;
+		Map &
+		operator()(std::string const & section);
+		Map &
+		operator()(void);
 
-			iss >> ans;
-			if (iss.rdbuf()->in_avail())
-				warn(std::string("`") + iss.str() + "` badly formated");
-			return ans;
-		}
+		bool
+		exists(std::string const & section);
+		bool
+		exists(std::string const & section, std::string const & key);
 
 	private:
-		Map		_values;
+		std::unordered_map<std::string, Map>
+					_sections;
+		std::string	_filename;
+
+		void
+		_open(void);
 };
 
 FDV_END_NAMESPACE
+
+#include "IO/ConfigFile.class.inline.hpp"
 
 #endif // __FDV__CONFIGFILE_CLASS__
