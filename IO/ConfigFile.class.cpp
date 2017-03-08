@@ -120,7 +120,7 @@ ConfigFile::Type<bool>::operator bool (void) const
 	std::string		str(_section.at(_key));
 
 	for (auto & c: str)
-		c = tolower(c);
+		c = (char)tolower(c);
 	if (str == "true")
 		return true;
 	if (str == "false")

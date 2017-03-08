@@ -24,6 +24,7 @@ OutputStream::OutputStream(std::string title,
 	_os(os),
 	_l(level)
 {
+	_name = title;
 }
 
 OutputStream::~OutputStream(void)

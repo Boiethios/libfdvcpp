@@ -65,11 +65,6 @@ class OutputStream : public Object
 			_os << buff.str();
 		}
 
-//		static OutputStream		Error,
-//								Warn,
-//								Info,
-//								Debug;
-
 	private:
 		std::string			_title;
 		std::ostream &		_os;
